@@ -1,6 +1,7 @@
 package de.gsi.dataset;
 
 /**
+ * TODO: bulk methods?
  * @author rstein
  *
  */

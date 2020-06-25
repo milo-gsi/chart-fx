@@ -2,7 +2,6 @@ package de.gsi.dataset.spi;
 
 import de.gsi.dataset.AxisDescription;
 import de.gsi.dataset.DataSet;
-import de.gsi.dataset.DataSet2D;
 import de.gsi.dataset.DataSetError;
 import de.gsi.dataset.EditableDataSet;
 import de.gsi.dataset.event.AddedDataEvent;
@@ -20,8 +19,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
  * @author rstein
  */
 @SuppressWarnings("PMD.TooManyMethods") // part of the flexible class nature
-public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
-        implements DataSetError, EditableDataSet, DataSet2D {
+public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet> implements DataSetError, EditableDataSet {
     private static final String Y_COORDINATES = "Y coordinates";
     private static final String X_COORDINATES = "X coordinates";
     private static final long serialVersionUID = 8931518518245752926L;
@@ -47,7 +45,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @throws IllegalArgumentException if {@code name} is {@code null}
      */
     public DoubleErrorDataSet(final String name) {
-        this(name, 2);
+        this(name, 0);
     }
 
     /**
@@ -67,8 +65,8 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @throws IllegalArgumentException if any of the parameters is {@code null} or if arrays with coordinates have
      *             different lengths
      */
-    public DoubleErrorDataSet(final String name, final double[] xValues, final double[] yValues,
-            final double[] yErrorsNeg, final double[] yErrorsPos, final int initalSize, boolean deepCopy) {
+    public DoubleErrorDataSet(final String name, final double[] xValues, final double[] yValues, final double[] yErrorsNeg, final double[] yErrorsPos,
+            final int initalSize, boolean deepCopy) {
         super(name, 2, ErrorType.NO_ERROR, ErrorType.ASYMMETRIC);
         set(xValues, yValues, yErrorsNeg, yErrorsPos, initalSize, deepCopy); // NOPMD
     }
@@ -123,8 +121,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param label the data label
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet add(final double x, final double y, final double yErrorNeg, final double yErrorPos,
-            final String label) {
+    public DoubleErrorDataSet add(final double x, final double y, final double yErrorNeg, final double yErrorPos, final String label) {
         lock().writeLockGuard(() -> {
             xValues.add(x);
             yValues.add(y);
@@ -151,8 +148,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param yErrorsPosNew the -dy errors
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet add(final double[] xValuesNew, final double[] yValuesNew, final double[] yErrorsNegNew,
-            final double[] yErrorsPosNew) {
+    public DoubleErrorDataSet add(final double[] xValuesNew, final double[] yValuesNew, final double[] yErrorsNegNew, final double[] yErrorsPosNew) {
         AssertUtils.notNull(X_COORDINATES, xValuesNew);
         AssertUtils.notNull(Y_COORDINATES, yValuesNew);
         AssertUtils.notNull("X error coordinates", yErrorsNegNew);
@@ -161,8 +157,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
 
         lock().writeLockGuard(() -> {
             final int addAt = xValues.size();
-            final int newElements = Math.min(Math.min(xValuesNew.length, yValuesNew.length),
-                    Math.min(yErrorsNegNew.length, yErrorsPosNew.length));
+            final int newElements = Math.min(Math.min(xValuesNew.length, yValuesNew.length), Math.min(yErrorsNegNew.length, yErrorsPosNew.length));
             this.resize(addAt + newElements);
 
             xValues.setElements(addAt, xValuesNew, 0, newElements);
@@ -228,8 +223,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param label data point label (see CategoryAxis)
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet add(final int index, final double x, final double y, final double yErrorNeg,
-            final double yErrorPos, final String label) {
+    public DoubleErrorDataSet add(final int index, final double x, final double y, final double yErrorNeg, final double yErrorPos, final String label) {
         lock().writeLockGuard(() -> {
             final int indexAt = Math.max(0, Math.min(index, getDataCount() + 1));
 
@@ -256,8 +250,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param yErrorPos the -dy error
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet add(final int index, final double[] x, final double[] y, final double[] yErrorNeg,
-            final double[] yErrorPos) {
+    public DoubleErrorDataSet add(final int index, final double[] x, final double[] y, final double[] yErrorNeg, final double[] yErrorPos) {
         AssertUtils.notNull(X_COORDINATES, x);
         AssertUtils.notNull(Y_COORDINATES, y);
         AssertUtils.notNull(X_COORDINATES, yErrorNeg);
@@ -317,7 +310,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
     }
 
     @Override
-    public int getDataCount(final int dimIndex) {
+    public int getDataCount() {
         return Math.min(xValues.size(), yValues.size());
     }
 
@@ -344,26 +337,6 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
     @Override
     public final double[] getValues(final int dimIndex) {
         return dimIndex == DataSet.DIM_X ? xValues.elements() : yValues.elements();
-    }
-
-    @Override
-    public double getX(final int index) {
-        return xValues.elements()[index];
-    }
-
-    @Override
-    public double[] getXValues() {
-        return xValues.elements();
-    }
-
-    @Override
-    public double getY(final int index) {
-        return yValues.elements()[index];
-    }
-
-    @Override
-    public double[] getYValues() {
-        return yValues.elements();
     }
 
     /**
@@ -435,41 +408,38 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @return itself (fluent design)
      */
     public DoubleErrorDataSet set(final DataSet other) {
-        lock().writeLockGuard(() -> {
-            other.lock().writeLockGuard(() -> {
-                // copy data
-                if (other instanceof DataSetError) {
-                    this.set(other.getValues(DIM_X), other.getValues(DIM_Y), ((DataSetError) other).getErrorsNegative(DIM_Y),
-                            ((DataSetError) other).getErrorsPositive(DIM_Y), other.getDataCount(), true);
-                } else {
-                    final int count = other.getDataCount();
-                    this.set(other.getValues(DIM_X), other.getValues(DIM_Y), new double[count], new double[count],
-                            other.getDataCount(), true);
-                }
+        lock().writeLockGuard(() -> other.lock().writeLockGuard(() -> {
+            // copy data
+            if (other instanceof DataSetError) {
+                this.set(other.getValues(DIM_X), other.getValues(DIM_Y), ((DataSetError) other).getErrorsNegative(DIM_Y),
+                        ((DataSetError) other).getErrorsPositive(DIM_Y), other.getDataCount(), true);
+            } else {
+                final int count = other.getDataCount();
+                this.set(other.getValues(DIM_X), other.getValues(DIM_Y), new double[count], new double[count], other.getDataCount(), true);
+            }
 
-                // deep copy data point labels and styles
-                getDataLabelMap().clear();
-                for (int index = 0; index < other.getDataCount(); index++) {
-                    final String label = other.getDataLabel(index);
-                    if (label != null && !label.isEmpty()) {
-                        this.addDataLabel(index, label);
-                    }
+            // deep copy data point labels and styles
+            getDataLabelMap().clear();
+            for (int index = 0; index < other.getDataCount(); index++) {
+                final String label = other.getDataLabel(index);
+                if (label != null && !label.isEmpty()) {
+                    this.addDataLabel(index, label);
                 }
-                getDataStyleMap().clear();
-                for (int index = 0; index < other.getDataCount(); index++) {
-                    final String style = other.getStyle(index);
-                    if (style != null && !style.isEmpty()) {
-                        this.addDataStyle(index, style);
-                    }
+            }
+            getDataStyleMap().clear();
+            for (int index = 0; index < other.getDataCount(); index++) {
+                final String style = other.getStyle(index);
+                if (style != null && !style.isEmpty()) {
+                    this.addDataStyle(index, style);
                 }
-                this.setStyle(other.getStyle());
+            }
+            this.setStyle(other.getStyle());
 
-                // synchronise axis description
-                for (int dimIndex = 0; dimIndex < getDimension(); dimIndex++) {
-                    this.getAxisDescription(dimIndex).set(other.getAxisDescription(dimIndex));
-                }
-            });
-        });
+            // synchronise axis description
+            for (int dimIndex = 0; dimIndex < getDimension(); dimIndex++) {
+                this.getAxisDescription(dimIndex).set(other.getAxisDescription(dimIndex));
+            }
+        }));
         return getThis();
     }
 
@@ -485,8 +455,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param yErrorsPos the -dy errors
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet set(final double[] xValues, final double[] yValues, final double[] yErrorsNeg,
-            final double[] yErrorsPos) {
+    public DoubleErrorDataSet set(final double[] xValues, final double[] yValues, final double[] yErrorsNeg, final double[] yErrorsPos) {
         return set(xValues, yValues, yErrorsNeg, yErrorsPos, true);
     }
 
@@ -503,9 +472,8 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param copy true: makes an internal copy, false: use the pointer as is (saves memory allocation)
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet set(final double[] xValues, final double[] yValues, final double[] yErrorsNeg,
-            final double[] yErrorsPos, final boolean copy) {
-        return set(xValues, yValues, yErrorsNeg, yErrorsPos, -1, true);
+    public DoubleErrorDataSet set(final double[] xValues, final double[] yValues, final double[] yErrorsNeg, final double[] yErrorsPos, final boolean copy) {
+        return set(xValues, yValues, yErrorsNeg, yErrorsPos, -1, copy);
     }
 
     /**
@@ -522,8 +490,8 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param copy true: makes an internal copy, false: use the pointer as is (saves memory allocation)
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet set(final double[] xValues, final double[] yValues, final double[] yErrorsNeg,
-            final double[] yErrorsPos, final int nSamples, final boolean copy) {
+    public DoubleErrorDataSet set(final double[] xValues, final double[] yValues, final double[] yErrorsNeg, final double[] yErrorsPos, final int nSamples,
+            final boolean copy) {
         AssertUtils.notNull(X_COORDINATES, xValues);
         AssertUtils.notNull(Y_COORDINATES, yValues);
         AssertUtils.notNull("Y error neg", yErrorsNeg);
@@ -612,8 +580,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
      * @param yErrorPos new vertical positive error of y (can be asymmetric)
      * @return itself (fluent design)
      */
-    public DoubleErrorDataSet set(final int index, final double x, final double y, final double yErrorNeg,
-            final double yErrorPos) {
+    public DoubleErrorDataSet set(final int index, final double x, final double y, final double yErrorNeg, final double yErrorPos) {
         lock().writeLockGuard(() -> {
             final int dataCount = Math.max(index + 1, this.getDataCount());
             xValues.size(dataCount);
@@ -634,8 +601,7 @@ public class DoubleErrorDataSet extends AbstractErrorDataSet<DoubleErrorDataSet>
         return fireInvalidated(new UpdatedDataEvent(this, "set - single"));
     }
 
-    public DoubleErrorDataSet set(final int index, final double[] x, final double[] y, final double[] yErrorNeg,
-            final double[] yErrorPos) {
+    public DoubleErrorDataSet set(final int index, final double[] x, final double[] y, final double[] yErrorNeg, final double[] yErrorPos) {
         lock().writeLockGuard(() -> {
             resize(Math.max(index + x.length, xValues.size()));
             System.arraycopy(x, 0, xValues.elements(), index, x.length);

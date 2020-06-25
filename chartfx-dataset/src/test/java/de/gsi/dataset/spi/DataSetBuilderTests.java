@@ -20,10 +20,10 @@ import org.junit.jupiter.api.Test;
 
 import de.gsi.dataset.AxisDescription;
 import de.gsi.dataset.DataSet;
-import de.gsi.dataset.DataSet2D;
 import de.gsi.dataset.DataSetError;
 import de.gsi.dataset.DataSetError.ErrorType;
 import de.gsi.dataset.DataSetMetaData;
+import de.gsi.dataset.GridDataSet;
 import de.gsi.dataset.event.EventListener;
 import de.gsi.dataset.locks.DataSetLock;
 
@@ -53,8 +53,6 @@ public class DataSetBuilderTests {
                                         .build();
         assertEquals("testdataset", dataset.getName());
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertArrayEquals(new double[] { 1f, 2f, 3f }, dataset.getValues(DIM_X));
         assertArrayEquals(new double[] { 1.337f, 23.42f, 0.0f }, dataset.getValues(DIM_Y));
         assertEquals(2, dataset.getDimension());
@@ -90,8 +88,6 @@ public class DataSetBuilderTests {
                                         .build();
         assertEquals("testdataset", dataset.getName());
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertArrayEquals(new double[] { 1, 2, 3 }, dataset.getValues(DIM_X));
         assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset.getValues(DIM_Y));
         assertEquals(2, dataset.getDimension());
@@ -114,8 +110,6 @@ public class DataSetBuilderTests {
                                          .build();
         assertEquals("testdataset", dataset3.getName());
         assertEquals(3, dataset3.getDataCount());
-        assertEquals(3, dataset3.getDataCount(DIM_X));
-        assertEquals(3, dataset3.getDataCount(DIM_Y));
         assertArrayEquals(new double[] { 1, 2, 3 }, dataset3.getValues(DIM_X));
         assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset3.getValues(DIM_Y));
         assertEquals(2, dataset3.getDimension());
@@ -167,8 +161,6 @@ public class DataSetBuilderTests {
                                         .build();
         assertEquals("testdataset", dataset.getName());
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertArrayEquals(new double[] { 1, 2, 3 }, dataset.getValues(DIM_X));
         assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset.getValues(DIM_Y));
         assertEquals(2, dataset.getDimension());
@@ -191,8 +183,6 @@ public class DataSetBuilderTests {
                                         .build();
         assertEquals("testdataset", dataset.getName());
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertArrayEquals(new double[] {
                                   0,
                                   1,
@@ -213,8 +203,6 @@ public class DataSetBuilderTests {
                                              .build(FloatDataSet.class);
         assertEquals("testdataset", dataset.getName());
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertArrayEquals(new double[] {
                                   0,
                                   1,
@@ -248,8 +236,6 @@ public class DataSetBuilderTests {
         assertArrayEquals(new double[] { 1, 2, 3 }, dataset.getValues(DIM_X));
         assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset.getValues(DIM_Y));
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertEquals(2, dataset.getDimension());
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 3));
         assertFalse(dataset instanceof DataSetError);
@@ -266,13 +252,11 @@ public class DataSetBuilderTests {
                                         .setAxisUnit(DIM_Y, "norris") //
                                         .setDataLabelMap(Collections.EMPTY_MAP) //
                                         .setDataStyleMap(Collections.EMPTY_MAP) //
-                                        .build(DataSet2D.class);
+                                        .build(DoubleDataSet.class);
         assertEquals("DataSet@", dataset.getName().substring(0, 8));
         assertArrayEquals(new double[] { 0, 1, 2 }, dataset.getValues(DIM_X));
         assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset.getValues(DIM_Y));
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertEquals(2, dataset.getDimension());
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 3));
         assertTrue(dataset instanceof DataSetError);
@@ -287,8 +271,6 @@ public class DataSetBuilderTests {
         assertArrayEquals(new double[] { 1, 2, 3 }, dataset.getValues(DIM_X));
         assertArrayEquals(new double[] { 0, 0, 0 }, dataset.getValues(DIM_Y));
         assertEquals(3, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(3, dataset.getDataCount(DIM_Y));
         assertEquals(2, dataset.getDimension());
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 3));
         assertFalse(dataset instanceof DataSetError);
@@ -302,16 +284,15 @@ public class DataSetBuilderTests {
                                         .setValues(DIM_Z, new double[] { 1, 2, 3, 10, 20, 30 })
                                         .build();
         assertEquals("testdataset", dataset.getName());
-        assertArrayEquals(new double[] { 1, 2, 3 }, dataset.getValues(DIM_X));
-        assertArrayEquals(new double[] { 10, 100 }, dataset.getValues(DIM_Y));
+        assertTrue(dataset instanceof GridDataSet);
+        GridDataSet gridDataset = (GridDataSet) dataset;
+        assertArrayEquals(new double[] { 1, 2, 3 }, gridDataset.getGridValues(DIM_X));
+        assertArrayEquals(new double[] { 10, 100 }, gridDataset.getGridValues(DIM_Y));
         assertArrayEquals(new double[] { 1, 2, 3, 10, 20, 30 }, dataset.getValues(DIM_Z));
+        assertEquals(3, gridDataset.getShape()[DIM_X]);
+        assertEquals(2, gridDataset.getShape()[DIM_Y]);
         assertEquals(6, dataset.getDataCount());
-        assertEquals(3, dataset.getDataCount(DIM_X));
-        assertEquals(2, dataset.getDataCount(DIM_Y));
-        assertEquals(6, dataset.getDataCount(DIM_Z));
-        assertEquals(3, dataset.getDimension());
-        assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 3));
-        assertTrue(dataset instanceof MultiDimDoubleDataSet);
+        assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 6));
     }
 
     @Test
@@ -326,9 +307,6 @@ public class DataSetBuilderTests {
         assertArrayEquals(new double[] { 10, 20, 30, 40, 50, 60 }, dataset.getValues(DIM_Y));
         assertArrayEquals(new double[] { 11, 22, 33, 44, 55, 66 }, dataset.getValues(DIM_Z));
         assertEquals(6, dataset.getDataCount());
-        assertEquals(6, dataset.getDataCount(DIM_X));
-        assertEquals(6, dataset.getDataCount(DIM_Y));
-        assertEquals(6, dataset.getDataCount(DIM_Z));
         assertEquals(3, dataset.getDimension());
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 6));
     }
@@ -348,11 +326,6 @@ public class DataSetBuilderTests {
         assertArrayEquals(new double[] { 11, 22, 33, 44, 0, 0 }, dataset.getValues(3));
         assertArrayEquals(new double[] { 0, 0, 0, 0, 0, 0 }, dataset.getValues(4));
         assertEquals(6, dataset.getDataCount());
-        assertEquals(6, dataset.getDataCount(DIM_X));
-        assertEquals(6, dataset.getDataCount(DIM_Y));
-        assertEquals(6, dataset.getDataCount(DIM_Z));
-        assertEquals(6, dataset.getDataCount(3));
-        assertEquals(6, dataset.getDataCount(4));
         assertEquals(5, dataset.getDimension());
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 6));
         assertTrue(dataset instanceof MultiDimDoubleDataSet);
@@ -450,7 +423,7 @@ public class DataSetBuilderTests {
         }
 
         @Override
-        public int getDataCount(int dimIndex) {
+        public int getDataCount() {
             return 10;
         }
 

@@ -114,12 +114,12 @@ public class Histogram extends AbstractHistogram implements Histogram1D {
             if (x < getAxisDescription(dimIndex).getMin()) {
                 return 0; // underflow bin
             }
-            return getDataCount(dimIndex) - 1; // overflow bin
+            return getDataCount() - 1; // overflow bin
         }
         if (isEquiDistant()) {
             final double diff = x - getAxisDescription(dimIndex).getMin();
             final double len = getAxisDescription(dimIndex).getLength();
-            final int count = getDataCount(dimIndex);
+            final int count = getDataCount();
             final double delta = len / count;
             return (int) Math.round(diff / delta);
         }
@@ -153,7 +153,7 @@ public class Histogram extends AbstractHistogram implements Histogram1D {
         return Collections.<String>emptyList();
     }
 
-    @Override
+//    @Override
     public double getValue(int dimIndex, double x) {
         final int index1 = getIndex(DIM_X, x);
         final double x1 = get(DIM_X, index1);

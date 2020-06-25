@@ -6,9 +6,10 @@ DataSets are the core concept for supplying data to charts and also to operate o
 
 ## Basic Interface
 
-A dataset in general is a table where each row conresponds to a n-dimensional point.
+A dataset in general is a table where each row corresponds to an n-dimensional point.
 Data can be obtained for an index, or as a bunch operation for the complete dataset.
 
+All bulk operations have default implementations which should be overwritten by more efficient methods if applicable.
 
 ```
 Interfaces:
@@ -46,20 +47,30 @@ EditableGridDataSet
 
 Interface for DataSets, which allow locking, providing a way to determine if a DataSet is lockable and to obtain the lock.
 
-```
-Interfaces:
-LockableDataSet
-```
+Implemented via getLock() method which returns null/defaultImpl for non-lockable datasets
+
+## Axes Descriptions (Range, Label, Unit, Dimension?)
+All datasets provide axes descriptions for each dimension via `getAxesDescription(dimIndex)`.
 
 ## Errors
 
 Specifies how DataSets provide Errors.
+Each dimension specifies if it has no error, symmetrical error or asymmetrical errors.
 
-## Axes Descriptions (Range, Label, Unit, Dimension?)
+TODO: clarify how to handle structured data. only support errors for values, not for grid?
 
 ## Histograms?
 
 ## Meta Data
+Provided via DataSetMetaData interface
+
+Q:
+have metaData impementation similar to lock
+getMetaData().getInfos()
+getMetaData().getWarnings()
+getMetaData().getMetaMap() ... etc
+metaData = new DefaultMetaData();
+
 
 # DataSet Implementations
 - basic
@@ -67,6 +78,7 @@ Specifies how DataSets provide Errors.
     - DoubleDataSet
     - MultiDimDoubleDataSet
     - MultiDimDoubleErrorDataSet?
+    - DoubleGridDataSet
     - +Float Types
 - special data handling
     - Circular

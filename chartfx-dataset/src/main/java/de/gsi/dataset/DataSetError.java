@@ -23,7 +23,7 @@ public interface DataSetError extends DataSet {
         final double x1 = get(DIM_X, index1);
         final double y1 = get(dimIndex, index1);
         int index2 = x1 < x ? index1 + 1 : index1 - 1;
-        index2 = Math.max(0, Math.min(index2, this.getDataCount(DIM_X) - 1));
+        index2 = Math.max(0, Math.min(index2, this.getDataCount() - 1));
         final double y2 = get(dimIndex, index2);
 
         if (Double.isNaN(y1) || Double.isNaN(y2)) {
@@ -63,7 +63,7 @@ public interface DataSetError extends DataSet {
         final double x1 = get(DIM_X, index1);
         final double y1 = get(dimIndex, index1);
         int index2 = x1 < x ? index1 + 1 : index1 - 1;
-        index2 = Math.max(0, Math.min(index2, this.getDataCount(DIM_X) - 1));
+        index2 = Math.max(0, Math.min(index2, this.getDataCount() - 1));
         final double y2 = get(dimIndex, index2);
 
         if (Double.isNaN(y1) || Double.isNaN(y2)) {
@@ -98,7 +98,7 @@ public interface DataSetError extends DataSet {
      * @return array containing negative 'dimIndex' error
      */
     default double[] getErrorsNegative(final int dimIndex) {
-        final int n = getDataCount(dimIndex);
+        final int n = getDataCount();
         final double[] retValues = new double[n];
         for (int i = 0; i < n; i++) {
             retValues[i] = getErrorNegative(dimIndex, i);
@@ -114,7 +114,7 @@ public interface DataSetError extends DataSet {
      * @return array containing positive 'dimIndex' error
      */
     default double[] getErrorsPositive(final int dimIndex) {
-        final int n = getDataCount(dimIndex);
+        final int n = getDataCount();
         final double[] retValues = new double[n];
         for (int i = 0; i < n; i++) {
             retValues[i] = getErrorPositive(dimIndex, i);

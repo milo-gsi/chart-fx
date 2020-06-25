@@ -24,6 +24,7 @@ import de.gsi.chart.renderer.ErrorStyle;
 import de.gsi.chart.renderer.Renderer;
 import de.gsi.dataset.AxisDescription;
 import de.gsi.dataset.DataSet;
+import de.gsi.dataset.GridDataSet;
 import de.gsi.dataset.event.EventListener;
 import de.gsi.dataset.locks.DataSetLock;
 import de.gsi.dataset.locks.DefaultDataSetLock;
@@ -74,8 +75,7 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
     public List<DataSet> render(final GraphicsContext gc, final Chart chart, final int dataSetOffset,
             final ObservableList<DataSet> datasets) {
         if (!(chart instanceof XYChart)) {
-            throw new InvalidParameterException(
-                    "must be derivative of XYChart for renderer - " + this.getClass().getSimpleName());
+            throw new InvalidParameterException("must be derivative of XYChart for renderer - " + this.getClass().getSimpleName());
         }
         final long start = ProcessingProfiler.getTimeStamp(); // NOPMD - time keeping needs to be defined here
         final XYChart xyChart = (XYChart) chart;
@@ -95,14 +95,7 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
             final DataSet dataSet = localDataSetList.get(dataSetIndex);
 
             // detect and fish-out 3D DataSet, ignore others
-            if (dataSet.getDimension() < MIN_DIM) {
-                continue;
-            }
-            final int nx = dataSet.getDataCount(DIM_X);
-            final int ny = dataSet.getDataCount(DIM_Y);
-            final int nz = dataSet.getDataCount(DIM_Z);
-            if (nz != nx * ny) {
-                // this renderer can handle only DataSets that are equidistantly-rastered
+            if (!(dataSet instanceof GridDataSet)) {
                 continue;
             }
 
@@ -123,11 +116,11 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
                 }
                 yAxis.setAutoRanging(autoRange);
 
-                final int yCountMax = dataSet.getDataCount(DIM_Y);
+                final int yCountMax = ((GridDataSet) dataSet).getShape()[DIM_Y];
                 checkAndRecreateRenderer(yCountMax);
 
                 for (int index = yCountMax - 1; index >= 0; index--) {
-                    renderers.get(index).getDatasets().setAll(new Demux3dTo2dDataSet(dataSet, index, zRangeMin, max)); // NOPMD -- new necessary here
+                    renderers.get(index).getDatasets().setAll(new Demux3dTo2dDataSet((GridDataSet) dataSet, index, zRangeMin, max)); // NOPMD -- new necessary here
                     renderers.get(index).render(gc, chart, 0, empty);
                 }
             });
@@ -180,9 +173,8 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
         private static final long serialVersionUID = 3914728138839091421L;
         private final transient DataSetLock<DataSet> localLock = new DefaultDataSetLock<>(this);
         private final transient AtomicBoolean autoNotify = new AtomicBoolean(true);
-        private final DataSet dataSet;
-        private final int nx;
-        private final int ny;
+        private final GridDataSet dataSet;
+        private final int[] shape;
         private final int yIndex;
         private final double zMin;
         private final double zMax;
@@ -192,16 +184,14 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
                 new DefaultAxisDescription("x-Axis", "a.u."), //
                 new DefaultAxisDescription("y-Axis", "a.u.")));
 
-        public Demux3dTo2dDataSet(final DataSet sourceDataSet, final int selectedYIndex, final double zMin,
-                final double zMax) {
+        public Demux3dTo2dDataSet(final GridDataSet sourceDataSet, final int selectedYIndex, final double zMin, final double zMax) {
             super();
             dataSet = sourceDataSet;
-            nx = dataSet.getDataCount(DIM_X);
-            ny = dataSet.getDataCount(DIM_Y);
+            shape = sourceDataSet.getShape();
             yIndex = selectedYIndex;
             this.zMin = zMin;
             this.zMax = zMax;
-            yShift = ny > 0 ? mountainRangeExtra * dataSet.getAxisDescription(DIM_Z).getMax() * yIndex / ny : 0;
+            yShift = shape[DIM_Y] > 0 ? mountainRangeExtra * dataSet.getAxisDescription(DIM_Z).getMax() * yIndex / shape[DIM_Y] : 0;
         }
 
         @Override
@@ -213,9 +203,9 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
         public double get(final int dimIndex, final int i) {
             switch (dimIndex) {
             case DIM_X:
-                return dataSet.get(dimIndex, i);
+                return dataSet.getGrid(dimIndex, i);
             case DIM_Y:
-                return dataSet.get(DIM_Z, yIndex * nx + i) + yShift;
+                return dataSet.get(DIM_Z, i, yIndex) + yShift;
             default:
                 throw new IllegalArgumentException("dinIndex " + dimIndex + " not defined");
             }
@@ -227,15 +217,8 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
         }
 
         @Override
-        public int getDataCount(int dimIndex) {
-            switch (dimIndex) {
-            case DIM_X:
-                return nx;
-            case DIM_Y:
-                return ny;
-            default:
-                throw new IndexOutOfBoundsException("dimIndex=" + dimIndex + " out of range");
-            }
+        public int getDataCount() {
+            return shape[DIM_X];
         }
 
         @Override
@@ -285,11 +268,6 @@ public class MountainRangeRenderer extends ErrorDataSetRenderer implements Rende
         @Override
         public String getStyle(final int index) {
             return null;
-        }
-
-        @Override
-        public double getValue(int dimIndex, double x) {
-            return 0;
         }
 
         @Override

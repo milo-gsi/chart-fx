@@ -5,6 +5,7 @@ import java.util.List;
 
 import de.gsi.dataset.event.EventSource;
 import de.gsi.dataset.locks.DataSetLock;
+import de.gsi.dataset.utils.AssertUtils;
 
 /**
  * Basic interface for observable data sets.
@@ -43,22 +44,11 @@ public interface DataSet extends EventSource, Serializable {
     List<AxisDescription> getAxisDescriptions();
 
     /**
-     * Get the number of data points in the data set. The default implementation is the number of points in the highest
-     * dimension.
+     * Get the number of data points in the data set.
      *
      * @return the number of data points
      */
-    default int getDataCount() {
-        return getDataCount(getDimension() - 1);
-    }
-
-    /**
-     * Get the number of data points in the data set for a specific dimension.
-     * 
-     * @param dimIndex the dimension index (ie. '0' equals 'X', '1' equals 'Y')
-     * @return the number of data points
-     */
-    int getDataCount(final int dimIndex);
+    int getDataCount();
 
     /**
      * Returns label of a data point specified by the index. The label can be used as a category name if
@@ -118,14 +108,14 @@ public interface DataSet extends EventSource, Serializable {
      * @param x the new x coordinate
      * @return the y value
      */
-    double getValue(final int dimIndex, final double x);
+    // double getValue(final int dimIndex, final double x);
 
     /**
      * @param dimIndex the dimension index (ie. '0' equals 'X', '1' equals 'Y')
      * @return the x value array
      */
     default double[] getValues(final int dimIndex) {
-        final int n = getDataCount(dimIndex);
+        final int n = getDataCount();
         final double[] retValues = new double[n];
         for (int i = 0; i < n; i++) {
             retValues[i] = get(dimIndex, i);
@@ -152,4 +142,33 @@ public interface DataSet extends EventSource, Serializable {
      */
     DataSet setStyle(String style);
 
+    /**
+     * Returns the value along the 'dimIndex' axis of a point specified by the <code>x</code> coordinate.
+     *
+     * @param dimIndex the dimension index (ie. '0' equals 'X', '1' equals 'Y')
+     * @param x horizontal 'dimIndex' coordinate
+     * @return 'dimIndex' value
+     */
+    default double getValue(final int dimIndex, final double... x) {
+        AssertUtils.checkArrayDimension("x", x, 1);
+        final int index1 = getIndex(DIM_X, x[0]);
+        final double x1 = get(DIM_X, index1);
+        final double y1 = get(dimIndex, index1);
+        int index2 = x1 < x[0] ? index1 + 1 : index1 - 1;
+        index2 = Math.max(0, Math.min(index2, this.getDataCount() - 1));
+        final double y2 = get(dimIndex, index2);
+
+        if (Double.isNaN(y1) || Double.isNaN(y2)) {
+            // case where the function has a gap (y-coordinate equals to NaN
+            return Double.NaN;
+        }
+
+        final double x2 = get(DIM_X, index2);
+        if (x1 == x2) {
+            return getValue(dimIndex, index1);
+        }
+
+        final double de1 = getValue(dimIndex, index1);
+        return de1 + (getValue(dimIndex, index2) - de1) * (x[0] - x1) / (x2 - x1);
+    }
 }

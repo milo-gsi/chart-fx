@@ -14,7 +14,6 @@ import org.jtransforms.fft.DoubleFFT_1D;
 
 import de.gsi.dataset.AxisDescription;
 import de.gsi.dataset.DataSet;
-import de.gsi.dataset.DataSet2D;
 import de.gsi.dataset.DataSetError;
 import de.gsi.dataset.EditableDataSet;
 import de.gsi.dataset.spi.DoubleDataSet;

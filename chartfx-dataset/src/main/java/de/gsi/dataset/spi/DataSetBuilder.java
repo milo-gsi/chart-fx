@@ -29,6 +29,7 @@ import de.gsi.dataset.utils.AssertUtils;
  * <li>dim:2, useFloat=false, errors=true: {@link DefaultErrorDataSet}
  * <li>dim:2, useFloat=true, errors=false: {@link FloatDataSet}
  * <li>dim:3+, useFloat=false, errors=false: {@link MultiDimDoubleDataSet}
+ * <li>dim:3+, useFloat=false, errors=false: {@link DoubleGridDataSet}
  * <li>All other combinations throw a {@code UnsupportedOperationException}
  * </ul>
  * 
@@ -152,6 +153,8 @@ public class DataSetBuilder {
             result = buildDefaultDataSetFloat(dsName, dataCount);
         } else if (clazz.isAssignableFrom(MultiDimDoubleDataSet.class) && !useErrors && !useFloat) {
             result = buildMultiDimDataSet(dsName, size);
+        } else if (clazz.isAssignableFrom(DoubleGridDataSet.class) && !useErrors && !useFloat) {
+            result = buildGridDataSet(dsName, size);
         } else if (EditableDataSet.class.isAssignableFrom(clazz) && !useErrors) {
             // try {
             //     result = clazz.getConstructor(String.class).newInstance(name);
@@ -302,6 +305,38 @@ public class DataSetBuilder {
             }
         }
         return new MultiDimDoubleDataSet(dsName, false, inputValues);
+    }
+
+    /**
+     * @param dsName name for the dataset
+     * @param size array of sizes for the dimensions
+     * @return the DoubleGridDataSet
+     */
+    private DataSet buildGridDataSet(String dsName, int[] size) {
+        final int nDims = size.length;
+        int nGrid = 0;
+        int validateDataCount = 1;
+        for (int i = 0; i < size.length; i++) {
+            if (size[i] != size[size.length-1]) {
+                nGrid = i+1;
+                validateDataCount *= size[i];
+            } else if (size[i] != validateDataCount) {
+                throw new IllegalArgumentException("Dimension Mismatch");
+            }
+        }
+        final double[][] gridValues = new double[nGrid][];
+        final double[][] inputValues = new double[nDims - nGrid][];
+        for (int dimIndex = 0; dimIndex < nDims; dimIndex++) {
+            if (dimIndex < nGrid) {
+                gridValues[dimIndex] = getValues(dimIndex, size[dimIndex]);
+            } else {
+                inputValues[dimIndex - nGrid] = getValues(dimIndex, size[dimIndex]);
+            }
+            if (errorsNeg.containsKey(dimIndex) || errorsPos.containsKey(dimIndex) || useErrors) {
+                throw new UnsupportedOperationException("DataSetBuilder: Errors not implemented for MultiDimDataSet");
+            }
+        }
+        return new DoubleGridDataSet(dsName, gridValues, inputValues);
     }
 
     private double[] getValues(final int dimIndex, final int size) {

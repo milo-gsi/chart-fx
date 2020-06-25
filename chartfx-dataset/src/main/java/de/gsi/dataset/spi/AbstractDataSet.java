@@ -40,8 +40,7 @@ import de.gsi.dataset.utils.AssertUtils;
  * 
  * @param <D> java generics handling of DataSet for derived classes (needed for fluent design)
  */
-public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends AbstractStylable<D>
-        implements DataSet, DataSetMetaData {
+public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends AbstractStylable<D> implements DataSet, DataSetMetaData {
     private static final long serialVersionUID = -7612136495756923417L;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDataSet.class);
@@ -149,19 +148,18 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
         if (other instanceof AbstractDataSet) {
             AbstractDataSet<?> otherAbsDs = (AbstractDataSet<?>) other;
             return getDataLabelMap().equals(otherAbsDs.getDataLabelMap());
-        } else {
-            for (int index = 0; index < getDataCount(); index++) {
-                final String label1 = this.getDataLabel(index);
-                final String label2 = other.getDataLabel(index);
-                if (label1 == label2) {
-                    continue;
-                }
-                if (label1 == null && label2 != null) {
-                    return false;
-                }
-                if (label1 == null || !label1.equals(label2)) {
-                    return false;
-                }
+        }
+        for (int index = 0; index < getDataCount(); index++) {
+            final String label1 = this.getDataLabel(index);
+            final String label2 = other.getDataLabel(index);
+            if (label1 == label2) {
+                continue;
+            }
+            if (label1 == null) {
+                return false;
+            }
+            if (!label1.equals(label2)) {
+                return false;
             }
         }
         return true;
@@ -209,7 +207,7 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
 
         if (epsilon <= 0.0) {
             for (int dimIndex = 0; dimIndex < this.getDimension(); dimIndex++) {
-                for (int index = 0; index < this.getDataCount(dimIndex); index++) {
+                for (int index = 0; index < this.getDataCount(); index++) {
                     if (thisErrorDs.getErrorNegative(dimIndex, index) != otherErrorDs.getErrorNegative(dimIndex, index)) {
                         return false;
                     }
@@ -220,13 +218,11 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
             }
         } else {
             for (int dimIndex = 0; dimIndex < this.getDimension(); dimIndex++) {
-                for (int index = 0; index < this.getDataCount(dimIndex); index++) {
-                    if (!MathUtils.nearlyEqual(thisErrorDs.getErrorNegative(dimIndex, index),
-                                otherErrorDs.getErrorNegative(dimIndex, index), epsilon)) {
+                for (int index = 0; index < this.getDataCount(); index++) {
+                    if (!MathUtils.nearlyEqual(thisErrorDs.getErrorNegative(dimIndex, index), otherErrorDs.getErrorNegative(dimIndex, index), epsilon)) {
                         return false;
                     }
-                    if (!MathUtils.nearlyEqual(thisErrorDs.getErrorPositive(dimIndex, index),
-                                otherErrorDs.getErrorPositive(dimIndex, index), epsilon)) {
+                    if (!MathUtils.nearlyEqual(thisErrorDs.getErrorPositive(dimIndex, index), otherErrorDs.getErrorPositive(dimIndex, index), epsilon)) {
                         return false;
                     }
                 }
@@ -282,8 +278,7 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
         }
         final DataSet other = (DataSet) obj;
         // TODO: check whether to add a thread-safety guard
-        // N.B. some complication equals can be invoked from both reader as well as
-        // writer threads
+        // N.B. some complication equals can be invoked from both reader as well as writer threads
 
         // check dimension and data counts
         if (this.getDimension() != other.getDimension()) {
@@ -291,11 +286,6 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
         }
         if (this.getDataCount() != other.getDataCount()) {
             return false;
-        }
-        for (int dimIndex = 0; dimIndex < this.getDimension(); dimIndex++) {
-            if (this.getDataCount(dimIndex) != other.getDataCount(dimIndex)) {
-                return false;
-            }
         }
 
         // check names
@@ -347,7 +337,7 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
     protected boolean equalValues(final DataSet other, final double epsilon) {
         if (epsilon <= 0.0) {
             for (int dimIndex = 0; dimIndex < this.getDimension(); dimIndex++) {
-                for (int index = 0; index < this.getDataCount(dimIndex); index++) {
+                for (int index = 0; index < this.getDataCount(); index++) {
                     if (get(dimIndex, index) != other.get(dimIndex, index)) {
                         return false;
                     }
@@ -355,7 +345,7 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
             }
         } else {
             for (int dimIndex = 0; dimIndex < this.getDimension(); dimIndex++) {
-                for (int index = 0; index < this.getDataCount(dimIndex); index++) {
+                for (int index = 0; index < this.getDataCount(); index++) {
                     if (!MathUtils.nearlyEqual(get(dimIndex, index), other.get(dimIndex, index), epsilon)) {
                         return false;
                     }
@@ -491,7 +481,7 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
             return 0;
         }
 
-        final int lastIndex = getDataCount(dimIndex) - 1;
+        final int lastIndex = getDataCount() - 1;
         if (x >= this.getAxisDescription(dimIndex).getMax()) {
             return lastIndex;
         }
@@ -561,7 +551,7 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
     public D recomputeLimits(final int dimIndex) {
         // first compute range (does not trigger notify events)
         DataRange newRange = new DataRange();
-        final int dataCount = getDataCount(dimIndex);
+        final int dataCount = getDataCount();
         for (int i = 0; i < dataCount; i++) {
             newRange.add(get(dimIndex, i));
         }
@@ -615,22 +605,16 @@ public abstract class AbstractDataSet<D extends AbstractStylable<D>> extends Abs
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(getClass().getName()).append(" [dim=").append(getDimension()).append(',');
+        builder.append(getClass().getName()).append(" [dim=").append(getDimension()).append(',').append(" dataCount=")
+                .append(this.getDataCount()).append(',');
         for (int i = 0; i < this.getDimension(); i++) {
             final AxisDescription desc = getAxisDescription(i);
             final boolean isDefined = desc.isDefined();
-            builder.append(" dataCount(").append(i).append(")=").append(this.getDataCount(i)).append(',') //
-                    .append(" axisName ='")
-                    .append(desc.getName())
-                    .append("',") //
-                    .append(" axisUnit = '")
-                    .append(desc.getUnit())
-                    .append("',") //
+            builder.append(" axisName ='").append(desc.getName()).append("',") //
+                    .append(" axisUnit = '").append(desc.getUnit()).append("',") //
                     .append(" axisRange = ") //
-                    .append(" [min=")
-                    .append(isDefined ? desc.getMin() : "NotDefined") //
-                    .append(", max=")
-                    .append(isDefined ? desc.getMax() : "NotDefined") //
+                    .append(" [min=").append(isDefined ? desc.getMin() : "NotDefined") //
+                    .append(", max=").append(isDefined ? desc.getMax() : "NotDefined") //
                     .append("],");
         }
         builder.append(']');

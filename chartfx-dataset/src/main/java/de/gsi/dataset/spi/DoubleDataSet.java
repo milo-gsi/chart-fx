@@ -2,7 +2,6 @@ package de.gsi.dataset.spi;
 
 import de.gsi.dataset.AxisDescription;
 import de.gsi.dataset.DataSet;
-import de.gsi.dataset.DataSet2D;
 import de.gsi.dataset.EditableDataSet;
 import de.gsi.dataset.event.AddedDataEvent;
 import de.gsi.dataset.event.RemovedDataEvent;
@@ -19,7 +18,7 @@ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
  * @author rstein
  */
 @SuppressWarnings("PMD.TooManyMethods") // part of the flexible class nature
-public class DoubleDataSet extends AbstractDataSet<DoubleDataSet> implements EditableDataSet, DataSet2D {
+public class DoubleDataSet extends AbstractDataSet<DoubleDataSet> implements EditableDataSet {
     private static final long serialVersionUID = -493232313124620828L;
     protected DoubleArrayList xValues; // way faster than java default lists
     protected DoubleArrayList yValues; // way faster than java default lists
@@ -243,7 +242,7 @@ public class DoubleDataSet extends AbstractDataSet<DoubleDataSet> implements Edi
     }
 
     @Override
-    public int getDataCount(final int dimIndex) {
+    public int getDataCount() {
         return Math.min(xValues.size(), yValues.size());
     }
 
@@ -378,7 +377,7 @@ public class DoubleDataSet extends AbstractDataSet<DoubleDataSet> implements Edi
      * @return itself
      */
     public DoubleDataSet set(final double[] xValues, final double[] yValues, final boolean copy) {
-        return set(xValues, yValues, -1, true);
+        return set(xValues, yValues, -1, copy);
     }
 
     /**
