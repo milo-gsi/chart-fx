@@ -1,5 +1,7 @@
 package de.gsi.dataset;
 
+import java.util.function.IntToDoubleFunction;
+
 /**
  * Interface for accessing data on a cartesian grid.
  * 
@@ -61,7 +63,7 @@ public interface GridDataSet extends DataSet {
         }
 
         // binary closest search -- assumes sorted data set
-        return binarySearch(dimIndex, x, 0, lastIndex);
+        return binarySearchGrid(x, 0, lastIndex, i -> getGrid(dimIndex, i));
     }
     
     /**
@@ -99,24 +101,24 @@ public interface GridDataSet extends DataSet {
         throw new UnsupportedOperationException("This Dataset does not implement updating data");
     }
 
-    private int binarySearch(final int dimIndex, final double search, final int indexMin, final int indexMax) {
+    private int binarySearchGrid(final double search, final int indexMin, final int indexMax, IntToDoubleFunction getter) {
         if (indexMin == indexMax) {
             return indexMin;
         }
         if (indexMax - indexMin == 1) {
-            if (Math.abs(get(dimIndex, indexMin) - search) < Math.abs(get(dimIndex, indexMax) - search)) {
+            if (Math.abs(getter.applyAsDouble(indexMin) - search) < Math.abs(getter.applyAsDouble(indexMax) - search)) {
                 return indexMin;
             }
             return indexMax;
         }
         final int middle = (indexMax + indexMin) / 2;
-        final double valMiddle = get(dimIndex, middle);
+        final double valMiddle = getter.applyAsDouble(middle);
         if (valMiddle == search) {
             return middle;
         }
         if (search < valMiddle) {
-            return binarySearch(dimIndex, search, indexMin, middle);
+            return binarySearchGrid(search, indexMin, middle, getter);
         }
-        return binarySearch(dimIndex, search, middle, indexMax);
+        return binarySearchGrid(search, middle, indexMax, getter);
     }
 }

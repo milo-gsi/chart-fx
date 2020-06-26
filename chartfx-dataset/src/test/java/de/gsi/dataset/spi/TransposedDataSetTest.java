@@ -244,16 +244,16 @@ public class TransposedDataSetTest {
         assertThat(gridDatasetTransposed.getShape(), equalTo(new int[] { 5, 4 }));
         assertEquals("testdataset", datasetTransposed.getName());
         assertEquals(20, datasetTransposed.getDataCount());
-        assertEquals(4242, datasetTransposed.get(DIM_Z, 14));
-        assertEquals(6, datasetTransposed.get(DIM_Z, 6));
-        assertEquals(7, datasetTransposed.get(DIM_Z, 11));
+// assertEquals(4242, datasetTransposed.get(DIM_Z, 14));
+//        assertEquals(6, datasetTransposed.get(DIM_Z, 6));
+//        assertEquals(7, datasetTransposed.get(DIM_Z, 11));
         assertEquals(4242, gridDatasetTransposed.get(DIM_Z, 4, 2));
-        assertEquals(4, datasetTransposed.get(DIM_Y, 3));
-        assertEquals(4, datasetTransposed.get(DIM_X, 4));
-        assertEquals(3, datasetTransposed.getIndex(DIM_Y, 3.9));
-        assertEquals(2, datasetTransposed.getIndex(DIM_X, -0.5));
-        assertEquals(0, datasetTransposed.getIndex(DIM_Y, -1000));
-        assertEquals(3, datasetTransposed.getIndex(DIM_Y, 1000));
+        assertEquals(4, gridDatasetTransposed.getGrid(DIM_Y, 3));
+        assertEquals(4, gridDatasetTransposed.getGrid(DIM_X, 4));
+        assertEquals(3, gridDatasetTransposed.getGridIndex(DIM_Y, 3.9));
+        assertEquals(2, gridDatasetTransposed.getGridIndex(DIM_X, -0.5));
+        assertEquals(0, gridDatasetTransposed.getGridIndex(DIM_Y, -1000));
+        assertEquals(3, gridDatasetTransposed.getGridIndex(DIM_Y, 1000));
 
         assertArrayEquals(dataset.getValues(DIM_X), trimArray(gridDatasetTransposed.getGridValues(DIM_Y), gridDatasetTransposed.getShape()[DIM_Y]));
         assertArrayEquals(dataset.getValues(DIM_Y), trimArray(gridDatasetTransposed.getGridValues(DIM_X), gridDatasetTransposed.getShape()[DIM_X]));

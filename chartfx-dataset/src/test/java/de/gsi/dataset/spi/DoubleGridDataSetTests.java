@@ -87,6 +87,11 @@ class DoubleGridDataSetTests {
         assertEquals(0.1, dataset.get(DIM_X, 2));
         assertEquals(2.0, dataset.get(3, 1, 0, 0));
         assertEquals(12.0, dataset.get(3, 1, 2, 1));
+        // indexing
+        assertEquals(1, dataset.getGridIndex(DIM_Y, 2.1));
+        assertEquals(1, dataset.getGridIndex(DIM_Y, 2.3));
+        assertEquals(1, dataset.getGridIndex(DIM_X, 2.3));
+        assertEquals(0, dataset.getGridIndex(DIM_X, 0.0));
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(3, 25));
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.getGrid(2, 25));
         assertThrows(IndexOutOfBoundsException.class, () -> dataset.getGrid(3, 1));
@@ -118,9 +123,5 @@ class DoubleGridDataSetTests {
         assertEquals(23.0, dataset.get(3, 1, 2, 1));
         assertSame(dataset, events.get(0).getSource());
         assertEquals("set x_3[1, 2, 1] = 23.0", events.get(0).getMessage());
-
-        assertThrows(UnsupportedOperationException.class, () -> dataset.add(DIM_Y, 2, 4.2, new double[] {1,2,3,4}));
-        assertThrows(UnsupportedOperationException.class, () -> dataset.delete(DIM_X, 0));
-        assertThrows(UnsupportedOperationException.class, () -> dataset.set(DIM_Y, new int[]{-1,2,-1}, new double[] {1,2,3,4}));
     }
 }

@@ -1,9 +1,10 @@
 package de.gsi.dataset.spi;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,11 +80,7 @@ public class TransposedDataSet implements DataSet {
 
     @Override
     public List<AxisDescription> getAxisDescriptions() {
-        ArrayList<AxisDescription> result = new ArrayList<>();
-        for (int dimIndex : permutation) {
-            result.add(dataSet.getAxisDescription(dimIndex));
-        }
-        return result;
+        return IntStream.of(permutation).mapToObj(dataSet::getAxisDescription).collect(Collectors.toList());
     }
 
     @Override
