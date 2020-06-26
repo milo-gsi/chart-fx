@@ -163,15 +163,24 @@ public class DoubleGridDataSet extends AbstractDataSet<DoubleGridDataSet> implem
     public int getIndex(final int... indices) {
         int index = 0;
         for (int i = 0; i < shape.length; i++) {
+            if (indices[i] >= shape[i]) {
+                throw new IndexOutOfBoundsException("Index out of bounds for dimension: " + i);
+            }
             index += indices[i] * strides[i];
         }
         return index;
     }
 
     public int[] getIndices(final int index) {
+        if (index == 0) {
+            return new int[shape.length];
+        }
         final int[] indices = new int[shape.length];
         int ind = index;
         for (int i = shape.length - 1; i >= 0; i--) {
+            if (shape[i] == 0) {
+                throw new IndexOutOfBoundsException();
+            }
             indices[i] = ind / strides[i];
             ind = ind % strides[i];
         }

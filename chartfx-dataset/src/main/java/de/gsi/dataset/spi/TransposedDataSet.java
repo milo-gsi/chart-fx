@@ -276,9 +276,7 @@ public class TransposedDataSet implements DataSet {
             final int[] indicesPermuted = new int[shapeOrig.length];
             for (int i = 0; i < shapeOrig.length; i++) {
                 if (permutation[i] < indices.length) {
-                    indicesPermuted[i] = shapeOrig[permutation[i]];
-                } else {
-                    indicesPermuted[i] = 0;
+                    indicesPermuted[permutation[i]] = indices[i];
                 }
             }
             return ((GridDataSet) dataSet).get(permutation[dimIndex], indicesPermuted);

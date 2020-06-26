@@ -267,6 +267,9 @@ public class DataSetBuilder {
             if (useFloat) {
                 throw new UnsupportedOperationException("Float DataSet Not implemented for nDims > 2");
             }
+            if (IntStream.of(size).allMatch(i -> (i == size[0]) || i == -1)) {
+                return buildGridDataSet(dsName, size);
+            }
             return buildMultiDimDataSet(dsName, size);
         }
     }

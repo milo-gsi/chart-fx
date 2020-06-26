@@ -78,79 +78,6 @@ public class DataSetBuilderTests {
     }
 
     @Test
-    public void testLegacySetters() {
-        final DataSet dataset = new DataSetBuilder() //
-                                        .setName("testdataset") //
-                                        .setValues(DIM_X, new double[] { 1, 2, 3 }) //
-                                        .setValues(DIM_Y, new double[] { 1.337, 23.42, 0.0 }) //
-                                        .setPosError(DIM_Y, new double[] { 0.1, 0.2, 0.1 }) //
-                                        .setNegError(DIM_Y, new double[] { 0.1, 0.2, 0.1 }) //
-                                        .build();
-        assertEquals("testdataset", dataset.getName());
-        assertEquals(3, dataset.getDataCount());
-        assertArrayEquals(new double[] { 1, 2, 3 }, dataset.getValues(DIM_X));
-        assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset.getValues(DIM_Y));
-        assertEquals(2, dataset.getDimension());
-        assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 3));
-        assertTrue(dataset instanceof DataSetError);
-        DataSetError errorDataSet = (DataSetError) dataset;
-        assertArrayEquals(new double[] { 0, 0, 0 }, errorDataSet.getErrorsPositive(DIM_X));
-        assertArrayEquals(new double[] { 0, 0, 0 }, errorDataSet.getErrorsNegative(DIM_X));
-        assertArrayEquals(new double[] { 0.1, 0.2, 0.1 }, errorDataSet.getErrorsPositive(DIM_Y));
-        assertArrayEquals(new double[] { 0.1, 0.2, 0.1 }, errorDataSet.getErrorsNegative(DIM_Y));
-        assertEquals(ErrorType.NO_ERROR, errorDataSet.getErrorType(DIM_X));
-        assertEquals(ErrorType.ASYMMETRIC, errorDataSet.getErrorType(DIM_Y));
-        // noCopy
-        final DataSet dataset3 = new DataSetBuilder() //
-                                         .setName("testdataset") //
-                                         .setValuesNoCopy(DIM_X, new double[] { 1, 2, 3 }) //
-                                         .setValuesNoCopy(DIM_Y, new double[] { 1.337, 23.42, 0.0 }) //
-                                         .setPosErrorNoCopy(DIM_Y, new double[] { 0.1, 0.2, 0.1 }) //
-                                         .setNegErrorNoCopy(DIM_Y, new double[] { 0.1, 0.2, 0.1 }) //
-                                         .build();
-        assertEquals("testdataset", dataset3.getName());
-        assertEquals(3, dataset3.getDataCount());
-        assertArrayEquals(new double[] { 1, 2, 3 }, dataset3.getValues(DIM_X));
-        assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset3.getValues(DIM_Y));
-        assertEquals(2, dataset3.getDimension());
-        assertThrows(IndexOutOfBoundsException.class, () -> dataset3.get(DIM_X, 3));
-        assertTrue(dataset instanceof DataSetError);
-        final DataSetError errordataset3 = (DataSetError) dataset;
-        assertArrayEquals(new double[] { 0, 0, 0 }, errordataset3.getErrorsPositive(DIM_X));
-        assertArrayEquals(new double[] { 0, 0, 0 }, errordataset3.getErrorsNegative(DIM_X));
-        assertArrayEquals(new double[] { 0.1, 0.2, 0.1 }, errordataset3.getErrorsPositive(DIM_Y));
-        assertArrayEquals(new double[] { 0.1, 0.2, 0.1 }, errordataset3.getErrorsNegative(DIM_Y));
-        assertEquals(ErrorType.NO_ERROR, errordataset3.getErrorType(DIM_X));
-        assertEquals(ErrorType.ASYMMETRIC, errordataset3.getErrorType(DIM_Y));
-        // unsupported X errors
-        assertThrows(UnsupportedOperationException.class, () -> {
-            new DataSetBuilder().setPosError(DIM_X, new double[] { 0.0, 3 }).setNegError(DIM_X, new double[] { 1, 2 }).setDimension(2).build();
-        });
-        assertThrows(UnsupportedOperationException.class, () -> {
-            new DataSetBuilder().setPosErrorNoCopy(DIM_X, new double[] { 0.0, 3 }).setNegErrorNoCopy(DIM_X, new double[] { 1, 2 }).setDimension(2).build();
-        });
-
-        // 3D
-        final DataSet dataset2 = new DataSetBuilder() //
-                                         .setName("testdataset") //
-                                         .setValuesNoCopy(DIM_X, new double[] { 1, 2, 3 }) //
-                                         .setValuesNoCopy(DIM_Y, new double[] { 1.337, 23.42 }) //
-                                         .setValues(DIM_Z, new double[][] { { 1, 2, 3 }, { 4, 5, 6 } }) //
-                                         .build();
-        assertEquals("testdataset", dataset2.getName());
-        assertEquals(MultiDimDoubleDataSet.class, dataset2.getClass());
-        assertEquals(6, dataset2.getDataCount());
-        assertEquals(3, dataset2.getDataCount(DIM_X));
-        assertEquals(2, dataset2.getDataCount(DIM_Y));
-        assertEquals(6, dataset2.getDataCount(DIM_Z));
-        assertArrayEquals(new double[] { 1, 2, 3 }, dataset2.getValues(DIM_X));
-        assertArrayEquals(new double[] { 1.337, 23.42 }, dataset2.getValues(DIM_Y));
-        assertArrayEquals(new double[] { 1, 2, 3, 4, 5, 6 }, dataset2.getValues(DIM_Z));
-        assertEquals(3, dataset2.getDimension());
-        assertThrows(IndexOutOfBoundsException.class, () -> dataset2.get(DIM_X, 3));
-    }
-
-    @Test
     public void testYErrorDataSetNoCopy() {
         final DataSet dataset = new DataSetBuilder() //
                                         .setName("testdataset") //
@@ -252,7 +179,7 @@ public class DataSetBuilderTests {
                                         .setAxisUnit(DIM_Y, "norris") //
                                         .setDataLabelMap(Collections.EMPTY_MAP) //
                                         .setDataStyleMap(Collections.EMPTY_MAP) //
-                                        .build(DoubleDataSet.class);
+                                        .build(DefaultErrorDataSet.class);
         assertEquals("DataSet@", dataset.getName().substring(0, 8));
         assertArrayEquals(new double[] { 0, 1, 2 }, dataset.getValues(DIM_X));
         assertArrayEquals(new double[] { 1.337, 23.42, 0.0 }, dataset.getValues(DIM_Y));
