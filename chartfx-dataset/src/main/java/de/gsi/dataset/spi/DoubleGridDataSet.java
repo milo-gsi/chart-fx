@@ -3,19 +3,18 @@ package de.gsi.dataset.spi;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
-import de.gsi.dataset.EditableGridDataSet;
 import de.gsi.dataset.GridDataSet;
 import de.gsi.dataset.event.UpdatedDataEvent;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 
 /**
- * Implementation of the GridDataSet. Allows data on n-dimensional cartesian grids with m values per point.
+ * Implementation of the GridDataSet. Allows data on n-dimensional Cartesian grids with m values per point.
  * The dimension of the dataSet is n+m.
  *
  * @author Alexander Krimm
  */
 @SuppressWarnings({"java:S2160"}) // equals is still valid because of DataSet interface
-public class DoubleGridDataSet extends AbstractDataSet<DoubleGridDataSet> implements EditableGridDataSet {
+public class DoubleGridDataSet extends AbstractDataSet<DoubleGridDataSet> implements GridDataSet {
     private static final long serialVersionUID = -493232313124620828L;
     protected final transient DoubleArrayList[] values; // way faster than java default lists
     protected transient int[] shape; // the sizes of the grid for each dimension [nx, ny ...]
@@ -187,7 +186,8 @@ public class DoubleGridDataSet extends AbstractDataSet<DoubleGridDataSet> implem
         return indices;
     }
 
-    public DoubleGridDataSet set(final double[][] grid, final double[]... vals) {
+    @Override
+    public void set(final double[][] grid, final double[]... vals) {
         lock().writeLockGuard(() -> {
             final double nDims = getDimension();
             if (nDims != grid.length + vals.length) {
@@ -211,14 +211,11 @@ public class DoubleGridDataSet extends AbstractDataSet<DoubleGridDataSet> implem
             }
 
         });
-        return fireInvalidated(new UpdatedDataEvent(this));
+        fireInvalidated(new UpdatedDataEvent(this));
     }
 
-    /**
-     * @param another dataSet whose values to copy into this dataset
-     * @return itself for method chaining
-     */
-    public DoubleGridDataSet set(GridDataSet another) {
+    @Override
+    public void set(GridDataSet another) {
         lock().writeLockGuard(() -> another.lock().writeLockGuard(() -> {
             final double nDims = getDimension();
             if (nDims != another.getDimension()) {
@@ -260,27 +257,19 @@ public class DoubleGridDataSet extends AbstractDataSet<DoubleGridDataSet> implem
                 this.getAxisDescription(dimIndex).set(another.getAxisDescription(dimIndex));
             }
         }));
-        return fireInvalidated(new UpdatedDataEvent(this));
+        fireInvalidated(new UpdatedDataEvent(this));
     }
 
-    @Override
-    public EditableGridDataSet delete(int dimIndex, int index) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public EditableGridDataSet set(int dimIndex, int[] indices, double value) {
+    /**
+     * Sets a single value on the grid
+     * 
+     * @param dimIndex Dimension to set value for
+     * @param indices grid indices to modify
+     * @param value new Value
+     * @return itself for method chaining
+     */
+    public GridDataSet set(int dimIndex, int[] indices, double value) {
         lock().writeLockGuard(() -> values[dimIndex].set(getIndex(indices), value));
         return fireInvalidated(new UpdatedDataEvent(this, "set x_" + dimIndex + Arrays.toString(indices) + " = " + value ));
-    }
-
-    @Override
-    public EditableGridDataSet set(int dimIndex, int[] indices, double[] values) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public EditableGridDataSet add(int dimIndex, int index, double value, double[] values) {
-        throw new UnsupportedOperationException("Not implemented yet");
     }
 }

@@ -252,10 +252,10 @@ public class DataSetEqualityTests {
             return Math.abs(Arrays.binarySearch(data, value));
         }
 
-        @Override
-        public double getValue(int dimIndex, double x) {
-            return (x - Math.floor(x)) * get(dimIndex, (int) Math.floor(x))
-                    + (Math.ceil(x) - x) * get(dimIndex, (int) Math.ceil(x));
-        }
+//        @Override
+//        public double getValue(int dimIndex, double x) {
+//            return (x - Math.floor(x)) * get(dimIndex, (int) Math.floor(x))
+//                    + (Math.ceil(x) - x) * get(dimIndex, (int) Math.ceil(x));
+//        }
     }
 }

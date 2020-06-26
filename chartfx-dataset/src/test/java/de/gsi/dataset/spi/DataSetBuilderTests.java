@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import static de.gsi.dataset.DataSet.DIM_X;
 import static de.gsi.dataset.DataSet.DIM_Y;
@@ -211,7 +213,7 @@ public class DataSetBuilderTests {
                                         .setValues(DIM_Z, new double[] { 1, 2, 3, 10, 20, 30 })
                                         .build();
         assertEquals("testdataset", dataset.getName());
-        assertTrue(dataset instanceof GridDataSet);
+        assertThat(dataset, instanceOf(GridDataSet.class));
         GridDataSet gridDataset = (GridDataSet) dataset;
         assertArrayEquals(new double[] { 1, 2, 3 }, gridDataset.getGridValues(DIM_X));
         assertArrayEquals(new double[] { 10, 100 }, gridDataset.getGridValues(DIM_Y));
@@ -219,7 +221,7 @@ public class DataSetBuilderTests {
         assertEquals(3, gridDataset.getShape()[DIM_X]);
         assertEquals(2, gridDataset.getShape()[DIM_Y]);
         assertEquals(6, dataset.getDataCount());
-        assertThrows(IndexOutOfBoundsException.class, () -> dataset.get(DIM_X, 6));
+        assertThrows(IndexOutOfBoundsException.class, () -> gridDataset.getGrid(DIM_X, 6));
     }
 
     @Test
@@ -385,10 +387,10 @@ public class DataSetBuilderTests {
             return null;
         }
 
-        @Override
-        public double getValue(int dimIndex, double x) {
-            return dimIndex == DIM_X ? x : 10 * x;
-        }
+//        @Override
+//        public double getValue(int dimIndex, double x) {
+//            return dimIndex == DIM_X ? x : 10 * x;
+//        }
 
         @Override
         public <D extends DataSet> DataSetLock<D> lock() {

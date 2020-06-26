@@ -88,7 +88,7 @@ public class DimReductionDataSet extends DoubleDataSet implements EventListener 
                 this.getWarningList().addAll(((DataSetMetaData) source).getWarningList());
             }
             if (source.getDimension() != 3 || source.getShape().length != 2) {
-                this.getWarningList().add("input data set noch 3 dim grid data set");
+                this.getWarningList().add("input data set not 3 dim grid data set");
                 return;
             }
             // recompute min/max indices based on actual new value range
@@ -121,9 +121,7 @@ public class DimReductionDataSet extends DoubleDataSet implements EventListener 
     }
 
     public void setMaxValue(final double val) {
-        lock().writeLockGuard(() -> {
-            maxValue = val;
-        });
+        lock().writeLockGuard(() -> maxValue = val);
         this.handle(new UpdateEvent(this, "changed indexMax"));
     }
 

@@ -201,9 +201,14 @@ public class DimReductionDataSetTests {
         sliceDataSetY.setMinValue(0);
         sliceDataSetY.setMaxValue(4);
 
+        assertEquals(0, sliceDataSetX.getMinIndex());
+        assertEquals(8, sliceDataSetX.getMaxIndex());
+        assertEquals(0, sliceDataSetY.getMinIndex());
+        assertEquals(3, sliceDataSetY.getMaxIndex());
+
         for (int i = 0; i < 3; i++) {
-            assertTrue(MathUtils.nearlyEqual(meanX[i], sliceDataSetX.getValues(DIM_Y)[i]), "x-integral");
-            assertTrue(MathUtils.nearlyEqual(meanY[i], sliceDataSetY.getValues(DIM_Y)[i]), "y-integral");
+            assertEquals(meanX[i], sliceDataSetX.get(DIM_Y, i), 1e-14, "x-integral " + i );
+            assertEquals(meanY[i], sliceDataSetY.get(DIM_Y, i), 1e-14, "y-integral " + i );
         }
     }
 
@@ -290,26 +295,10 @@ public class DimReductionDataSetTests {
 
     @Test
     public void testInvalid2DInputDataSet() {
-        GridDataSet testData = new DataSetBuilder("test") //
-                                   .setValuesNoCopy(DIM_X, new double[] { 1, 2, 3 }) // x-array
-                                   .setValuesNoCopy(DIM_Y, new double[] { 6, 7, 8 }) // y-array
-                                   .build(GridDataSet.class);
+        GridDataSet testData = new DoubleGridDataSet("test", new double[][] {{  1, 2, 3 }}, new double[] { 6, 7, 8 });
 
         DimReductionDataSet sliceDataSetX = new DimReductionDataSet(testData, DIM_X, Option.SLICE);
         testData.invokeListener(new UpdateEvent(testData, "testX"), true);
-        assertEquals("input dataSet nDim < 3", sliceDataSetX.getWarningList().get(0));
-    }
-
-    @Test
-    public void testInvalidNonGrid3DInputDataSet() {
-        GridDataSet testData = new DataSetBuilder("test") //
-                                   .setValuesNoCopy(DIM_X, new double[] { 1, 2, 3 }) // x-array
-                                   .setValuesNoCopy(DIM_Y, new double[] { 6, 7, 8 }) // y-array
-                                   .setValuesNoCopy(DIM_Z, new double[] { 1, 5, 9 }) // z-array
-                                   .build(GridDataSet.class);
-
-        DimReductionDataSet sliceDataSetX = new DimReductionDataSet(testData, DIM_X, Option.SLICE);
-        testData.invokeListener(new UpdateEvent(testData, "testX"), true);
-        assertEquals("input dataSet n_x * n_y != n_z", sliceDataSetX.getWarningList().get(0));
+        assertEquals("input data set not 3 dim grid data set", sliceDataSetX.getWarningList().get(0));
     }
 }
